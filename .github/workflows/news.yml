@@ -18,8 +18,12 @@ jobs:
 
       - name: Run news bot
         run: |
-          pip install --quiet feedparser
           python news_bot.py
+
+      - name: Set git user info  # ←★これが重要
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -27,4 +31,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./output_html
           publish_branch: gh-pages
-          destination_dir: .  # ← 重要！ここでルートに出力
+          destination_dir: .
