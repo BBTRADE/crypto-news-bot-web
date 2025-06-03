@@ -44,7 +44,7 @@ def generate_yaml(news_items):
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     yaml = f'update_time: "{today}"\n'
     yaml += 'summary_post_generation:\n'
-    yaml += '  purpose: "過去24時間の暗号資産関連ニュースを調査し、まとめ投稿を作成する"\n'
+    yaml += '  purpose: "下記itemsにある過去24時間の暗号資産関連ニュースを調査し、暗号資産トレーダーに関係のあるニュースを最大10個までを選定し、まとめ投稿を作成する。"\n'
     yaml += 'structure:\n'
     yaml += '  order:\n'
     yaml += '    - "最新ニュースまとめ（下記itemsの構成）"\n'
