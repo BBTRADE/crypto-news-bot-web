@@ -1,35 +1,55 @@
+import feedparser
 import datetime
 import os
+from datetime import datetime, timedelta, timezone
+
+RSS_URLS = [
+    "https://www.coindesk.com/arc/outboundfeeds/rss/",
+    "https://cointelegraph.com/rss",
+    "https://decrypt.co/feed",
+    "https://news.bitcoin.com/feed/",
+    "https://cryptonews.com/news/feed/",
+    "https://jp.cointelegraph.com/rss",
+    "https://coinpost.jp/?feed=rss2",
+    "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+    "https://www.reuters.com/finance/economy/rss",
+    "https://www.aljazeera.com/xml/rss/all.xml",
+    "https://www3.nhk.or.jp/rss/news/cat0.xml"
+]
+
+def is_recent(entry, hours=24):
+    try:
+        published = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+        return published > datetime.now(timezone.utc) - timedelta(hours=hours)
+    except:
+        return True
+
+def is_similar(t1, t2):
+    return t1[:15] in t2 or t2[:15] in t1
 
 def fetch_news():
-    return [
-        {
-            "title": "Crypto Lobbyists Urge U.S. Senators...",
-            "url": "https://www.coindesk.com/...",
-            "summary": "米国でステーブルコインの...",
-            "comment": "これは選挙前の駆け引き。..."
-        },
-        {
-            "title": "Ethereum Foundation Lays Off...",
-            "url": "https://www.coindesk.com/...",
-            "summary": "Ethereum財団が人員整理...",
-            "comment": "一時的には弱材料。構造改革中。"
-        }
-    ]
+    seen, entries = [], []
+    for url in RSS_URLS:
+        feed = feedparser.parse(url)
+        for entry in feed.entries:
+            if is_recent(entry) and not any(is_similar(entry.title, t) for t in seen):
+                entries.append({
+                    "title": entry.title,
+                    "url": entry.link
+                })
+                seen.append(entry.title)
+    return entries
 
 def generate_yaml(news_items):
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
-    yaml_text = 'date: "{}"\nnews:\n'.format(today)
+    today = datetime.now().strftime('%Y-%m-%d')
+    yaml_text = f'date: "{today}"\nnews:\n'
     for item in news_items:
-        yaml_text += '  - title: "{}"\n'.format(item['title'])
-        yaml_text += '    url: "{}"\n'.format(item['url'])
-        yaml_text += '    summary: "{}"\n'.format(item['summary'])
-        yaml_text += '    comment: "{}"\n'.format(item['comment'])
-    yaml_text += 'strategy: "全体的に様子見ムード。週末要注意。"\n'
+        yaml_text += f'  - title: "{item["title"]}"\n'
+        yaml_text += f'    url: "{item["url"]}"\n'
     return yaml_text
 
 def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.html"):
-    html = """<!DOCTYPE html>
+    html = f"""<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
@@ -43,11 +63,10 @@ def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.ht
 <body>
   <h2>📄 山田犬郎のまとめ用YAML</h2>
   <div class="YAML">
-{}
+{yaml_content}
   </div>
 </body>
-</html>
-""".format(yaml_content)
+</html>"""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
