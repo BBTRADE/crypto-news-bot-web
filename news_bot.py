@@ -44,12 +44,13 @@ def generate_yaml(news_items):
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     yaml = f'update_time: "{today}"\n'
     yaml += 'summary_post_generation:\n'
-    yaml += '  purpose: "下記itemsにある過去24時間の暗号資産関連ニュースを調査し、暗号資産トレーダーに関係のあるニュースを最大10個までを選定し、まとめ投稿を作成する。"\n'
+    yaml += '  purpose: "下記itemsにある過去24時間の暗号資産関連ニュースを調査し、暗号資産トレーダーに関係のあるニュースを最大7個までを選定し、まとめ投稿を作成してください。"\n'
     yaml += 'structure:\n'
     yaml += '  order:\n'
     yaml += '    - "最新ニュースまとめ（下記itemsの構成）"\n'
     yaml += '    - "トレード戦略・見解（下記strategy_commentaryの構成）"\n'
     yaml += '    - "今週の米国経済指標＆イベント（日本時間で記載）：https://www.gaikaex.com/gaikaex/mark/calendar/index.phpを参照"\n'
+    yaml += '    - "disclaimer（下記disclaimerをそのまま使用）"\n'
     yaml += f'  news_summary:\n    - title: "📢 最新ニュース（{datetime.now().strftime("%m/%d")}）"\n'
     yaml += 'items:\n'
     for item in news_items:
