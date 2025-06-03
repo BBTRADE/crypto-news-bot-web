@@ -1,8 +1,8 @@
 import feedparser
-import datetime
 import os
 from datetime import datetime, timedelta, timezone
 
+# ニュースフィードの一覧
 RSS_URLS = [
     "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "https://cointelegraph.com/rss",
@@ -41,12 +41,46 @@ def fetch_news():
     return entries
 
 def generate_yaml(news_items):
-    today = datetime.now().strftime('%Y-%m-%d')
-    yaml_text = f'date: "{today}"\nnews:\n'
+    today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    yaml = f'update_time: "{today}"\n'
+    yaml += 'summary_post_generation:\n'
+    yaml += '  purpose: "過去24時間の暗号資産関連ニュースを調査し、まとめ投稿を作成する"\n'
+    yaml += 'structure:\n'
+    yaml += '  order:\n'
+    yaml += '    - "最新ニュースまとめ"\n'
+    yaml += '    - "トレード戦略・見解"\n'
+    yaml += '    - "今週の米国経済指標＆イベント（日本時間で記載）：https://www.gaikaex.com/gaikaex/mark/calendar/index.phpを参照"\n'
+    yaml += f'  news_summary:\n    - title: "📢 最新ニュース（{datetime.now().strftime("%m/%d")}）"\n'
+    yaml += 'items:\n'
     for item in news_items:
-        yaml_text += f'  - title: "{item["title"]}"\n'
-        yaml_text += f'    url: "{item["url"]}"\n'
-    return yaml_text
+        yaml += f'  - headline: "✅{item["title"]}"\n'
+        yaml += f'    summary: "📝要約（未入力）"\n'
+        yaml += f'    url: "🔗{item["url"]}"\n'
+        yaml += f'    comment: "▶コメント＆解説（未入力）"\n'
+    yaml += '''strategy_commentary:
+  title: "📊マーケット反応とトレード戦略"
+  body: "現在、国際的な情勢の影響で市場が不安定です。リスク管理と情報収集を徹底しましょう。"
+economic_events:
+  title: "📅今週の重要経済指標・イベント"
+  schedule:
+    - date: "📌06月05日（水）"
+      event: "✅21:30 米国・雇用統計（予想あり）"
+  note: "指標発表前後は急変動に注意"
+disclaimer: "※本投稿は情報提供を目的としたものであり、特定の投資行動を推奨するものではありません。投資判断はご自身の責任でお願いいたします。"
+rules:
+  forbidden:
+    - "ハルシネーション"
+    - "過去24時間より前のニュース掲載"
+    - "不完全なURLの掲載"
+    - "機能しないURLの掲載"
+  recommended:
+    - "ハルシネーションチェックの実施"
+    - "ファクトチェックの実施"
+    - "URLの正確性確認"
+    - "プロ視点としてのコメント確認（犬郎として）"
+    - "以下の絵文字を使用推奨：📅✅📌💣🚀▶📢🎉⚠️📝📊📉📈"
+'''
+    return yaml
 
 def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.html"):
     html = f"""<!DOCTYPE html>
@@ -58,13 +92,21 @@ def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.ht
   <style>
     body {{ font-family: monospace; padding: 20px; background: #f4f4f4; }}
     .YAML {{ white-space: pre-wrap; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
+    button {{ margin-bottom: 15px; padding: 8px 16px; font-size: 14px; }}
   </style>
 </head>
 <body>
   <h2>📄 山田犬郎のまとめ用YAML</h2>
-  <div class="YAML">
-{yaml_content}
-  </div>
+  <button onclick="copyYAML()">📋 コピー</button>
+  <pre id="yamlBlock" class="YAML">{yaml_content}</pre>
+  <script>
+    function copyYAML() {{
+      const text = document.getElementById("yamlBlock").innerText;
+      navigator.clipboard.writeText(text).then(() => {{
+        alert("コピーしました！");
+      }});
+    }}
+  </script>
 </body>
 </html>"""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
