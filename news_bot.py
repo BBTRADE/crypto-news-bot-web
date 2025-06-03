@@ -57,7 +57,7 @@ def generate_yaml(news_items):
     for item in news_items:
         yaml += f'  - headline: "✅{item["title"]}"\n'
         yaml += f'    summary: "📝+要約（例：📝要約を記載）"\n'
-        yaml += f'    url: "🔗+URL（例：🔗https://www.coindesk.com/）"\n'
+        yaml += f'    url: "🔗{item["url"]}"\n'
         yaml += f'    comment: "▶+コメント＆解説（例：▶コメントや解説を記載）"\n'
     yaml += '''strategy_commentary:
     title: "📊マーケット反応とトレード戦略"
