@@ -53,6 +53,11 @@ def generate_yaml(news_items):
     yaml += '    - "今週の米国経済指標＆イベント（日本時間で記載）：https://www.gaikaex.com/gaikaex/mark/calendar/index.phpを参照"\n'
     yaml += '    - "disclaimer（下記disclaimerをそのまま使用）"\n'
     yaml += f'  news_summary:\n    - title: "📢 最新ニュース（{datetime.now().strftime("%m/%d")}）"\n'
+    yaml += '  news_item_structure:\n'
+    yaml += '    - headline: "✅ニュースの見出し"\n'
+    yaml += '      summary: "📝ニュースの要約（重要なポイントを簡潔に）"\n'
+    yaml += '      url: "🔗ニュース記事のURL"\n'
+    yaml += '      comment: "▶トレーダー視点でのコメント・解説（市場への影響など）"\n'
     yaml += 'items:\n'
     for item in news_items:
         yaml += f'  - headline: "✅{item["title"]}"\n'
@@ -112,12 +117,20 @@ def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.ht
         body {{ font-family: monospace; padding: 20px; background: #f4f4f4; }}
         .YAML {{ white-space: pre-wrap; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
         button {{ margin-bottom: 15px; padding: 8px 16px; font-size: 14px; }}
+        .news-items {{ margin-top: 20px; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }}
+        .news-item {{ margin-bottom: 15px; }}
+        .news-item a {{ color: #0066cc; text-decoration: none; }}
+        .news-item a:hover {{ text-decoration: underline; }}
     </style>
 </head>
 <body>
     <h2>📄 山田犬郎のまとめ用YAML</h2>
     <button onclick="copyYAML()">📋 コピー</button>
     <pre id="yamlBlock" class="YAML">{yaml_content}</pre>
+    <div class="news-items">
+        <h3>📰 ニュース一覧</h3>
+        {generate_news_items_html(yaml_content)}
+    </div>
     <script>
         function copyYAML() {{
             const text = document.getElementById("yamlBlock").innerText;
@@ -131,6 +144,23 @@ def generate_html_with_yaml(yaml_content, output_path="output_html/news_embed.ht
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
+
+def generate_news_items_html(yaml_content):
+    import yaml
+    try:
+        data = yaml.safe_load(yaml_content)
+        news_items = data.get('items', [])
+        html = ""
+        for item in news_items:
+            headline = item.get('headline', '').replace('✅', '')
+            url = item.get('url', '').replace('🔗', '')
+            html += f'<div class="news-item">\n'
+            html += f'  <div>✅ {headline}</div>\n'
+            html += f'  <div><a href="{url}" target="_blank">🔗 記事を読む</a></div>\n'
+            html += f'</div>\n'
+        return html
+    except Exception as e:
+        return f"<p>ニュースアイテムの読み込み中にエラーが発生しました: {str(e)}</p>"
 
 if __name__ == "__main__":
     news = fetch_news()
